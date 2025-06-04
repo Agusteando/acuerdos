@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import EditEntryModal, { Entry as EntryType } from '@/components/EditEntryModal';
 import CreateGroupModal from '@/components/CreateGroupModal';
 import AddEntryModal from '@/components/AddEntryModal';
+import BulkAssignModal from '@/components/BulkAssignModal';
 
 interface Responsable {
   email: string;
@@ -38,6 +39,8 @@ export default function AcuerdosPage() {
   const [editing, setEditing] = useState<EntryType | null>(null);
   const [creating, setCreating] = useState(false);
   const [addingTo, setAddingTo] = useState<Group | null>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [bulkAssigning, setBulkAssigning] = useState(false);
 
   useEffect(() => {
     fetch('https://bot.casitaapps.com/acuerdos/not-done')
@@ -90,6 +93,14 @@ const toggleDone = (entry: Entry) => {
     .catch(err => console.error('Error updating entry', err));
 };
 
+const toggleSelect = (id: number) => {
+  setSelected(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+};
+
 const updateStatus = (entry: Entry, status: string) => {
   let progreso = entry.progreso;
   let done = entry.done;
@@ -120,6 +131,19 @@ const updateStatus = (entry: Entry, status: string) => {
       });
   })
     .catch(err => console.error('Error updating status', err));
+};
+
+const statusClass = (status: string) => {
+  switch (status) {
+    case 'completado':
+      return 'status-completado';
+    case 'en progreso':
+      return 'status-en-progreso';
+    case 'cancelado':
+      return 'status-cancelado';
+    default:
+      return 'status-pendiente';
+  }
 };
 
 const deleteEntry = (entry: Entry) => {
@@ -183,6 +207,30 @@ const addEntry = (group: Group, data: { title: string; responsables: Responsable
   }));
 };
 
+const assignResponsables = async (users: Responsable[]) => {
+  const ids = Array.from(selected);
+  if (ids.length === 0) return;
+  await Promise.all(
+    ids.map(id =>
+      fetch(`https://bot.casitaapps.com/acuerdos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ responsables: JSON.stringify(users) }),
+      }),
+    ),
+  );
+  setGroups(prev => {
+    const updated = { ...prev };
+    Object.values(updated).forEach(g => {
+      g.entries = g.entries.map(e =>
+        ids.includes(e.id) ? { ...e, responsablesArray: users } : e,
+      );
+    });
+    return updated;
+  });
+  setSelected(new Set());
+};
+
   return (
     <>
     <div className="p-4 max-w-3xl mx-auto space-y-6">
@@ -201,6 +249,18 @@ const addEntry = (group: Group, data: { title: string; responsables: Responsable
         value={search}
         onChange={e => setSearch(e.target.value)}
       />
+      {selected.size > 0 && (
+        <div className="bg-gray-100 p-2 flex items-center justify-between rounded mb-2">
+          <span>{selected.size} seleccionado(s)</span>
+          <button
+            type="button"
+            className="border px-2 py-1 text-xs rounded"
+            onClick={() => setBulkAssigning(true)}
+          >
+            Asignar responsables
+          </button>
+        </div>
+      )}
       {Object.values(groups).map(group => {
         const completed = group.entries.filter(e => e.done).length;
         const progress = Math.round((completed / group.entries.length) * 100);
@@ -246,6 +306,11 @@ const addEntry = (group: Group, data: { title: string; responsables: Responsable
                         <div className="flex items-start gap-2">
                           <input
                             type="checkbox"
+                            checked={selected.has(entry.id)}
+                            onChange={() => toggleSelect(entry.id)}
+                          />
+                          <input
+                            type="checkbox"
                             checked={entry.done}
                             onChange={() => toggleDone(entry)}
                           />
@@ -263,6 +328,9 @@ const addEntry = (group: Group, data: { title: string; responsables: Responsable
                             <option value="cancelado">Cancelado</option>
                             <option value="completado">Completado</option>
                           </select>
+                          <span className={`text-xs ${statusClass(entry.status)}`}>
+                            {entry.status}
+                          </span>
                           <button
                             type="button"
                             className="border px-1 text-xs rounded"
@@ -310,6 +378,15 @@ const addEntry = (group: Group, data: { title: string; responsables: Responsable
           setAddingTo(null);
         }}
         onClose={() => setAddingTo(null)}
+      />
+    )}
+    {bulkAssigning && (
+      <BulkAssignModal
+        onAssign={users => {
+          assignResponsables(users);
+          setBulkAssigning(false);
+        }}
+        onClose={() => setBulkAssigning(false)}
       />
     )}
     </>

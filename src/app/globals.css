@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* status badge colors */
+.status-pendiente {
+  @apply bg-gray-200 text-gray-800 px-2 py-0.5 rounded;
+}
+.status-en-progreso {
+  @apply bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded;
+}
+.status-cancelado {
+  @apply bg-red-200 text-red-800 px-2 py-0.5 rounded;
+}
+.status-completado {
+  @apply bg-green-200 text-green-800 px-2 py-0.5 rounded;
+}

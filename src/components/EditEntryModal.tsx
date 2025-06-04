@@ -1,6 +1,10 @@
 'use client';
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import UserSearch, { Responsable } from './UserSearch';
+
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+import 'react-quill/dist/quill.snow.css';
 
 export interface Entry {
   id: number;
@@ -62,11 +66,7 @@ export default function EditEntryModal({ entry, onClose, onSave }: Props) {
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
       <div className="bg-white p-4 rounded w-full max-w-lg space-y-3">
         <h2 className="text-lg font-semibold">Editar Acuerdo</h2>
-        <textarea
-          className="border p-1 w-full h-24"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
+        <ReactQuill theme="snow" value={title} onChange={setTitle} />
         <div className="flex items-center gap-2">
           <label className="text-sm">Estatus:</label>
           <select

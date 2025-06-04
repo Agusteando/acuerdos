@@ -272,7 +272,9 @@ const assignResponsables = async (users: Responsable[]) => {
       )}
       {Object.values(groups).map(group => {
         const completed = group.entries.filter(e => e.done).length;
-        const progress = Math.round((completed / group.entries.length) * 100);
+        const progress = group.entries.length
+          ? Math.round((completed / group.entries.length) * 100)
+          : 0;
         return (
           <div key={group.uid} className="border rounded-md mb-4">
             <button
@@ -285,9 +287,13 @@ const assignResponsables = async (users: Responsable[]) => {
             </button>
             {group.visible && (
               <div className="p-2 space-y-2">
-                <div className="h-2 bg-gray-200 rounded">
-                  <div style={{ width: `${progress}%` }} className="h-full bg-green-500 rounded" />
+                <div className="h-2 bg-gray-200 rounded overflow-hidden">
+                  <div
+                    style={{ width: `${progress}%` }}
+                    className="h-full bg-green-500 rounded transition-all"
+                  />
                 </div>
+                <div className="text-right text-xs text-gray-600">{progress}% completado</div>
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
@@ -318,7 +324,10 @@ const assignResponsables = async (users: Responsable[]) => {
                       return plain.includes(search.toLowerCase());
                     })
                     .map(entry => (
-                      <li key={entry.id} className="flex flex-col gap-1 border p-2 rounded">
+                      <li
+                        key={entry.id}
+                        className={`flex flex-col gap-1 border p-2 rounded ${selected.has(entry.id) ? 'bg-blue-50' : ''}`}
+                      >
                         <div className="flex items-start gap-2">
                           <input
                             type="checkbox"
@@ -339,10 +348,10 @@ const assignResponsables = async (users: Responsable[]) => {
                             onChange={e => updateStatus(entry, e.target.value)}
                             className="border p-1 text-sm"
                           >
-                            <option value="pendiente">Pendiente</option>
-                            <option value="en progreso">En progreso</option>
-                            <option value="cancelado">Cancelado</option>
-                            <option value="completado">Completado</option>
+                            <option className={statusClass('pendiente')} value="pendiente">Pendiente</option>
+                            <option className={statusClass('en progreso')} value="en progreso">En progreso</option>
+                            <option className={statusClass('cancelado')} value="cancelado">Cancelado</option>
+                            <option className={statusClass('completado')} value="completado">Completado</option>
                           </select>
                           <span className={`text-xs ${statusClass(entry.status)}`}>
                             {entry.status}
@@ -368,6 +377,12 @@ const assignResponsables = async (users: Responsable[]) => {
                             {entry.responsablesArray.map(r => r.fullName).join(', ')}
                           </div>
                         )}
+                        <div className="h-1 bg-gray-200 rounded mt-1">
+                          <div
+                            style={{ width: `${entry.progreso}%` }}
+                            className="h-full bg-blue-500 rounded transition-all"
+                          />
+                        </div>
                       </li>
                     ))}
                 </ul>

@@ -1,16 +1,21 @@
 # Development Notes for Acuerdos SaaS Port
 
-The current Next.js implementation only provides partial functionality from the original AngularJS SPA. Important features are still missing.
+The current Next.js implementation now covers several core features from the original AngularJS SPA. Some functionality is still missing.
 
-## Missing Features
-- Multi-selection of entries and bulk actions (assign responsables, generate PDFs, send emails).
-- Creating, deleting and managing "minutas" (groups) including adding new agreements.
-- Rich text editing tools for adding/editing agreements.
-- Status dropdown with color badges instead of simple `<select>`.
+## Implemented Features
+- Multi-selection of entries with bulk assignment of responsables.
+- Creating and deleting "minutas" and adding new agreements.
+- Rich text editing for agreements.
+- Color coded status badges.
+
+## Remaining Features
+- Bulk actions for generating PDFs and sending emails.
 - WhatsApp integration for sending messages.
 - Generating PDFs per responsable and emailing them.
 - Toolbar for bulk operations with progress bars per entry.
-- Visual elements matching the AngularJS UI (progress bars, color badges, etc.).
+- Enhanced status dropdown with colored options.
+- Ability to rename existing minutas.
+- Additional visual polish to match the AngularJS UI.
 
 ## Key Files
 - `src/app/acuerdos/page.tsx` – main page listing agreements.
@@ -18,14 +23,10 @@ The current Next.js implementation only provides partial functionality from the 
 - `src/components/UserSearch.tsx` – search component used in modals.
 
 ## Suggested Next Steps
-1. Implement creation and deletion of minutas with a modal form similar to the AngularJS version.
-2. Add the multi-select UI for entries using a library like `react-selectable` or custom logic.
-3. Port the bulk assign responsables workflow (`BulkAssignModal` in the AngularJS code).
-4. Implement PDF generation endpoint calls and email option.
-5. Add WhatsApp message sending UI based on the API used in the AngularJS version.
-6. Enhance the edit modal with rich-text controls and status dropdown badges.
-7. Create toolbar for bulk actions that appears when items are selected.
-8. Add ability to add new entries to existing minutas and delete entries/groups.
-9. Ensure progress bars, status colors and responsible chips match the original UI.
+1. Implement PDF generation endpoints and email workflow for selected entries.
+2. Integrate WhatsApp message sending using the API from the AngularJS version.
+3. Add progress indicators and enhance the bulk action toolbar.
+4. Allow renaming existing minutas and other group management features.
+5. Polish UI elements (progress bars, responsible chips, etc.) to match the original design.
 
 This file should remain in the repository root so future developers know what features still need to be ported.

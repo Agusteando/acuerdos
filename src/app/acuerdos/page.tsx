@@ -43,6 +43,8 @@ export default function AcuerdosPage() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bulkAssigning, setBulkAssigning] = useState(false);
   const [renaming, setRenaming] = useState<Group | null>(null);
+  const [bulkAction, setBulkAction] = useState<string | null>(null);
+  const [bulkProgress, setBulkProgress] = useState(0);
 
   useEffect(() => {
     fetch('https://bot.casitaapps.com/acuerdos/not-done')
@@ -240,6 +242,24 @@ const assignResponsables = async (users: Responsable[]) => {
   setSelected(new Set());
 };
 
+const runBulkOperation = async (op: 'pdf' | 'whatsapp') => {
+  const ids = Array.from(selected);
+  if (ids.length === 0) return;
+  setBulkAction(op);
+  setBulkProgress(0);
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i];
+    await fetch(`/api/${op === 'pdf' ? 'generate-pdf' : 'send-whatsapp'}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entryIds: [id] }),
+    });
+    setBulkProgress(Math.round(((i + 1) / ids.length) * 100));
+  }
+  setBulkAction(null);
+  setSelected(new Set());
+};
+
   return (
     <>
     <div className="p-4 max-w-3xl mx-auto space-y-6">
@@ -259,15 +279,39 @@ const assignResponsables = async (users: Responsable[]) => {
         onChange={e => setSearch(e.target.value)}
       />
       {selected.size > 0 && (
-        <div className="bg-gray-100 p-2 flex items-center justify-between rounded mb-2">
+        <div className="bg-gray-100 p-2 flex flex-wrap items-center justify-between rounded mb-2 gap-2">
           <span>{selected.size} seleccionado(s)</span>
-          <button
-            type="button"
-            className="border px-2 py-1 text-xs rounded"
-            onClick={() => setBulkAssigning(true)}
-          >
-            Asignar responsables
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="border px-2 py-1 text-xs rounded"
+              onClick={() => setBulkAssigning(true)}
+            >
+              Asignar responsables
+            </button>
+            <button
+              type="button"
+              className="border px-2 py-1 text-xs rounded"
+              onClick={() => runBulkOperation('pdf')}
+            >
+              Generar PDF y Email
+            </button>
+            <button
+              type="button"
+              className="border px-2 py-1 text-xs rounded"
+              onClick={() => runBulkOperation('whatsapp')}
+            >
+              Enviar WhatsApp
+            </button>
+          </div>
+          {bulkAction && (
+            <div className="w-full h-2 bg-gray-200 rounded overflow-hidden mt-2">
+              <div
+                className="h-full bg-blue-500 transition-all"
+                style={{ width: `${bulkProgress}%` }}
+              />
+            </div>
+          )}
         </div>
       )}
       {Object.values(groups).map(group => {
@@ -372,9 +416,15 @@ const assignResponsables = async (users: Responsable[]) => {
                           </button>
                         </div>
                         {entry.responsablesArray && entry.responsablesArray.length > 0 && (
-                          <div className="text-sm text-gray-600">
-                            Responsable(s):{' '}
-                            {entry.responsablesArray.map(r => r.fullName).join(', ')}
+                          <div className="flex flex-wrap gap-1 text-sm text-gray-600">
+                            {entry.responsablesArray.map(r => (
+                              <span
+                                key={r.email}
+                                className="bg-gray-200 rounded-full px-2 py-0.5"
+                              >
+                                {r.fullName}
+                              </span>
+                            ))}
                           </div>
                         )}
                         <div className="h-1 bg-gray-200 rounded mt-1">

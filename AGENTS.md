@@ -9,13 +9,9 @@ The current Next.js implementation now covers several core features from the ori
 - Color coded status badges.
 
 ## Remaining Features
-- Bulk actions for generating PDFs and sending emails.
-- WhatsApp integration for sending messages.
-- Generating PDFs per responsable and emailing them.
-- Toolbar for bulk operations with progress bars per entry.
-- Enhanced status dropdown with colored options.
-- Ability to rename existing minutas.
-- Additional visual polish to match the AngularJS UI.
+- Integrate real PDF generation and email workflow with the backend service.
+- Connect the WhatsApp API used by the AngularJS version.
+- Fine‑tune visual polish to completely match the old UI.
 
 ## Key Files
 - `src/app/acuerdos/page.tsx` – main page listing agreements.
@@ -23,10 +19,8 @@ The current Next.js implementation now covers several core features from the ori
 - `src/components/UserSearch.tsx` – search component used in modals.
 
 ## Suggested Next Steps
-1. Implement PDF generation endpoints and email workflow for selected entries.
-2. Integrate WhatsApp message sending using the API from the AngularJS version.
-3. Add progress indicators and enhance the bulk action toolbar.
-4. Allow renaming existing minutas and other group management features.
-5. Polish UI elements (progress bars, responsible chips, etc.) to match the original design.
+1. Replace the placeholder API routes with calls to the real backend.
+2. Ensure WhatsApp messages are sent through the production service.
+3. Continue refining styling as needed.
 
 This file should remain in the repository root so future developers know what features still need to be ported.

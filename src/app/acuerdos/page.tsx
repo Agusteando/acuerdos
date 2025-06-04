@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import EditEntryModal, { Entry as EntryType } from '@/components/EditEntryModal';
+import CreateGroupModal from '@/components/CreateGroupModal';
+import AddEntryModal from '@/components/AddEntryModal';
 
 interface Responsable {
   email: string;
@@ -34,6 +36,8 @@ export default function AcuerdosPage() {
   const [groups, setGroups] = useState<Record<string, Group>>({});
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<EntryType | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [addingTo, setAddingTo] = useState<Group | null>(null);
 
   useEffect(() => {
     fetch('https://bot.casitaapps.com/acuerdos/not-done')
@@ -145,10 +149,51 @@ const saveEntry = (updated: EntryType) => {
   setEditing(null);
 };
 
+const createGroup = (title: string) => {
+  const uid = Date.now().toString();
+  setGroups(prev => ({
+    ...prev,
+    [uid]: { uid, minuta_title: title, entries: [], visible: true },
+  }));
+};
+
+const deleteGroup = (group: Group) => {
+  if (!confirm('Eliminar esta minuta?')) return;
+  setGroups(prev => {
+    const updated = { ...prev };
+    delete updated[group.uid];
+    return updated;
+  });
+};
+
+const addEntry = (group: Group, data: { title: string; responsables: Responsable[] }) => {
+  const newEntry: Entry = {
+    id: Date.now(),
+    uid: group.uid,
+    minuta_title: group.minuta_title,
+    title: data.title,
+    progreso: 0,
+    status: 'pendiente',
+    responsablesArray: data.responsables,
+    done: false,
+  };
+  setGroups(prev => ({
+    ...prev,
+    [group.uid]: { ...group, entries: [...group.entries, newEntry] },
+  }));
+};
+
   return (
     <>
     <div className="p-4 max-w-3xl mx-auto space-y-6">
       <h1 className="text-2xl font-semibold">Acuerdos</h1>
+      <button
+        type="button"
+        className="bg-blue-600 text-white px-3 py-1 rounded"
+        onClick={() => setCreating(true)}
+      >
+        Nueva Minuta
+      </button>
       <input
         type="text"
         placeholder="Buscar..."
@@ -163,7 +208,9 @@ const saveEntry = (updated: EntryType) => {
           <div key={group.uid} className="border rounded-md mb-4">
             <button
               className="w-full text-left p-2 bg-gray-100"
-              onClick={() => setGroups(prev => ({ ...prev, [group.uid]: { ...group, visible: !group.visible } }))}
+              onClick={() =>
+                setGroups(prev => ({ ...prev, [group.uid]: { ...group, visible: !group.visible } }))
+              }
             >
               {group.minuta_title}
             </button>
@@ -171,6 +218,22 @@ const saveEntry = (updated: EntryType) => {
               <div className="p-2 space-y-2">
                 <div className="h-2 bg-gray-200 rounded">
                   <div style={{ width: `${progress}%` }} className="h-full bg-green-500 rounded" />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    className="border px-1 text-xs rounded"
+                    onClick={() => setAddingTo(group)}
+                  >
+                    Agregar acuerdo
+                  </button>
+                  <button
+                    type="button"
+                    className="border px-1 text-xs rounded text-red-600"
+                    onClick={() => deleteGroup(group)}
+                  >
+                    Eliminar minuta
+                  </button>
                 </div>
                 <ul className="space-y-2">
                   {group.entries
@@ -235,6 +298,18 @@ const saveEntry = (updated: EntryType) => {
         entry={editing}
         onClose={() => setEditing(null)}
         onSave={saveEntry}
+      />
+    )}
+    {creating && (
+      <CreateGroupModal onCreate={createGroup} onClose={() => setCreating(false)} />
+    )}
+    {addingTo && (
+      <AddEntryModal
+        onAdd={data => {
+          addEntry(addingTo, data);
+          setAddingTo(null);
+        }}
+        onClose={() => setAddingTo(null)}
       />
     )}
     </>

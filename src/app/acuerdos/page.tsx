@@ -4,6 +4,7 @@ import EditEntryModal, { Entry as EntryType } from '@/components/EditEntryModal'
 import CreateGroupModal from '@/components/CreateGroupModal';
 import AddEntryModal from '@/components/AddEntryModal';
 import BulkAssignModal from '@/components/BulkAssignModal';
+import RenameGroupModal from '@/components/RenameGroupModal';
 
 interface Responsable {
   email: string;
@@ -41,6 +42,7 @@ export default function AcuerdosPage() {
   const [addingTo, setAddingTo] = useState<Group | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bulkAssigning, setBulkAssigning] = useState(false);
+  const [renaming, setRenaming] = useState<Group | null>(null);
 
   useEffect(() => {
     fetch('https://bot.casitaapps.com/acuerdos/not-done')
@@ -190,6 +192,13 @@ const deleteGroup = (group: Group) => {
   });
 };
 
+const renameGroup = (group: Group, title: string) => {
+  setGroups(prev => ({
+    ...prev,
+    [group.uid]: { ...group, minuta_title: title },
+  }));
+};
+
 const addEntry = (group: Group, data: { title: string; responsables: Responsable[] }) => {
   const newEntry: Entry = {
     id: Date.now(),
@@ -289,6 +298,13 @@ const assignResponsables = async (users: Responsable[]) => {
                   </button>
                   <button
                     type="button"
+                    className="border px-1 text-xs rounded"
+                    onClick={() => setRenaming(group)}
+                  >
+                    Renombrar
+                  </button>
+                  <button
+                    type="button"
                     className="border px-1 text-xs rounded text-red-600"
                     onClick={() => deleteGroup(group)}
                   >
@@ -378,6 +394,16 @@ const assignResponsables = async (users: Responsable[]) => {
           setAddingTo(null);
         }}
         onClose={() => setAddingTo(null)}
+      />
+    )}
+    {renaming && (
+      <RenameGroupModal
+        currentTitle={renaming.minuta_title}
+        onRename={title => {
+          renameGroup(renaming, title);
+          setRenaming(null);
+        }}
+        onClose={() => setRenaming(null)}
       />
     )}
     {bulkAssigning && (

@@ -74,10 +74,10 @@ export default function EditEntryModal({ entry, onClose, onSave }: Props) {
             value={status}
             onChange={e => setStatus(e.target.value)}
           >
-            <option value="pendiente">Pendiente</option>
-            <option value="en progreso">En progreso</option>
-            <option value="cancelado">Cancelado</option>
-            <option value="completado">Completado</option>
+            <option className="status-pendiente" value="pendiente">Pendiente</option>
+            <option className="status-en-progreso" value="en progreso">En progreso</option>
+            <option className="status-cancelado" value="cancelado">Cancelado</option>
+            <option className="status-completado" value="completado">Completado</option>
           </select>
         </div>
         <input
